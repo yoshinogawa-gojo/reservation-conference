@@ -260,6 +260,7 @@ function updateCancelButtonState(reservations) {
         cancelButton.disabled = true;
         cancelButton.textContent = 'キャンセル不可';
     }
+} // この閉じ括弧が元のコードで欠けていました
 
 // キャンセル確認
 function confirmCancel() {
