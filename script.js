@@ -3,7 +3,7 @@ let currentReservations = [];
 let currentReservationNumber = '';
 
 // Cloud Run API設定
-const API_BASE_URL = 'https://reservation-conference-knn6yth7rq-an.a.run.app/api';
+const API_BASE_URL = 'https://yoshinogawa-conference-491148086706.asia-northeast1.run.app/api';
 
 // 初期化
 document.addEventListener('DOMContentLoaded', function() {
@@ -180,7 +180,7 @@ function displayReservationDetails(reservations) {
                 <span class="confirmation-value">${reservation['Name-s'] === '同行者' ? '同行者として登録' : reservation['Name-s']}</span>
             </div>
             <div class="confirmation-item">
-                <span class="confirmation-label">メニュー</span>
+                <span class="confirmation-label">座席タイプ</span>
                 <span class="confirmation-value">${reservation.Menu}</span>
             </div>
             <div class="confirmation-item">
@@ -188,7 +188,7 @@ function displayReservationDetails(reservations) {
                 <span class="confirmation-value">${reservation.date} ${reservation.Time}</span>
             </div>
             <div class="confirmation-item">
-                <span class="confirmation-label">施術時間</span>
+                <span class="confirmation-label">人数</span>
                 <span class="confirmation-value">約${reservation.WorkTime}分</span>
             </div>
             <div class="confirmation-item">
@@ -240,16 +240,19 @@ function updateCancelButtonState(reservations) {
         if (reservation.states !== 0) {
             return false; // 予約済み以外はキャンセル不可
         }
-        
-        // 現在時刻と予約時刻を比較
-        const now = new Date();
-        const reservationDateTime = new Date(`${reservation.date}T${reservation.Time}:00`);
-        const timeDifference = reservationDateTime.getTime() - now.getTime();
-        const hoursDifference = timeDifference / (1000 * 60 * 60);
-        
-        return hoursDifference >= 1; // 1時間以上前かチェック
-    });
     
+        // 現在時刻と予約日の前日23:59を比較
+        const now = new Date();
+        const reservationDate = new Date(reservation.date);
+    
+        // 予約日の前日の23:59:59を設定
+        const cancelDeadline = new Date(reservationDate);
+        cancelDeadline.setDate(cancelDeadline.getDate() - 1); // 前日に設定
+        cancelDeadline.setHours(23, 59, 59, 999); // 23:59:59.999に設定
+    
+        return now <= cancelDeadline; // 現在時刻が前日23:59以前かチェック
+    });
+
     if (canCancel && reservations.some(r => r.states === 0)) {
         cancelButton.disabled = false;
         cancelButton.textContent = 'キャンセル';
@@ -257,7 +260,6 @@ function updateCancelButtonState(reservations) {
         cancelButton.disabled = true;
         cancelButton.textContent = 'キャンセル不可';
     }
-}
 
 // キャンセル確認
 function confirmCancel() {
