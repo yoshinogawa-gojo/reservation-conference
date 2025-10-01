@@ -46,7 +46,7 @@ async function checkReservation() {
     
     // バリデーション
     if (!reservationNumber || !phoneNumber) {
-        showError('予約番号と電話番号を入力してください。');
+        showError('予約番号とお名前を入力してください。');
         return;
     }
     
@@ -67,7 +67,7 @@ async function checkReservation() {
             },
             body: JSON.stringify({
                 reservationNumber: reservationNumber,
-                lastName: phoneNumber  // バックエンドAPIのlastNameパラメータに電話番号を送信
+                lastName: phoneNumber 
             })
         });
         
