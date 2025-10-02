@@ -81,7 +81,7 @@ async function checkReservation() {
             // 予約情報をURLパラメータとして渡して詳細ページに遷移
             const params = new URLSearchParams({
                 number: reservationNumber,
-                phone: phoneNumber  // パラメータ名を変更
+                phone: phoneNumber
             });
             window.location.href = `reservation.html?${params.toString()}`;
         } else {
@@ -100,7 +100,7 @@ async function checkReservation() {
 async function loadReservationFromUrl() {
     const params = new URLSearchParams(window.location.search);
     const reservationNumber = params.get('number');
-    const phoneNumber = params.get('phone');  // パラメータ名を変更
+    const phoneNumber = params.get('phone');
     
     if (!reservationNumber || !phoneNumber) {
         showError('不正なアクセスです。');
@@ -123,7 +123,7 @@ async function loadReservationFromUrl() {
             },
             body: JSON.stringify({
                 reservationNumber: reservationNumber,
-                lastName: phoneNumber  // バックエンドAPIのlastNameパラメータに電話番号を送信
+                lastName: phoneNumber
             })
         });
         
@@ -157,7 +157,17 @@ function displayReservationDetails(reservations) {
     
     container.innerHTML = '';
     
-    reservations.forEach((reservation, index) => {
+    // キャンセル済み（states: 2）の予約を除外
+    const activeReservations = reservations.filter(reservation => reservation.states !== 2);
+    
+    // 表示する予約がない場合
+    if (activeReservations.length === 0) {
+        container.innerHTML = '<div class="confirmation-section"><div class="confirmation-message" style="text-align: center; padding: 20px;">表示できる予約がありません。</div></div>';
+        updateCancelButtonState([]);
+        return;
+    }
+    
+    activeReservations.forEach((reservation, index) => {
         const section = document.createElement('div');
         section.className = 'confirmation-section';
         
@@ -206,8 +216,8 @@ function displayReservationDetails(reservations) {
         container.appendChild(section);
     });
     
-    // キャンセルボタンの有効/無効を設定
-    updateCancelButtonState(reservations);
+    // キャンセルボタンの有効/無効を設定（キャンセル済みを除外した予約で判定）
+    updateCancelButtonState(activeReservations);
 }
 
 // ステータステキストを取得
@@ -235,6 +245,13 @@ function updateCancelButtonState(reservations) {
     const cancelButton = document.getElementById('cancel-button');
     if (!cancelButton) return;
     
+    // 予約がない場合はキャンセルボタンを無効化
+    if (reservations.length === 0) {
+        cancelButton.disabled = true;
+        cancelButton.textContent = 'キャンセル不可';
+        return;
+    }
+    
     // 全ての予約がキャンセル可能かチェック
     const canCancel = reservations.every(reservation => {
         if (reservation.states !== 0) {
@@ -260,7 +277,7 @@ function updateCancelButtonState(reservations) {
         cancelButton.disabled = true;
         cancelButton.textContent = 'キャンセル不可';
     }
-} // この閉じ括弧が元のコードで欠けていました
+}
 
 // キャンセル確認
 function confirmCancel() {
